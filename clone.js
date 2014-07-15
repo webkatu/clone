@@ -1,29 +1,44 @@
 var clone = (function() {
+	function createMemo() {
+		return {
+			'Object': [],
+			'Array' : [],
+			'Function': [],
+			'Error': [],
+			'Date': [],
+			'RegExp': [],
+			'Boolean': [],
+			'String': [],
+			'Number': [],
+		};
+	}
 	//循環参照対策のため、すべてオブジェクトをmemoに保存;
-	var memo = [];
+	var memo = createMemo();
 	//main関数 第一引数はcloneしたいobject 第二引数はcloneしたくないobjectのconstructorを配列で指定する;
-	function clone(object, constructors) {
+	function clone(object, prototypes) {
+		//プリミティブ型はそのまま返す;
+		if(object === null || (typeof object !== 'object' && typeof object !== 'function')) {
+			return object;
+		}
 		//cloneしたくないobjectであれば、参照で返す;
-		if(typeOf(constructors) === 'Array'){
-			for(var i = 0, len = constructors.length; i < len; i++) {
-				if(object.constructor === constructors[i]) {
+		if(typeOf(prototypes) === 'Array'){
+			for(var i = 0, len = prototypes.length; i < len; i++) {
+				if(Object.getPrototypeOf(object) === prototypes[i]) {
 					return object;
 				}
 			}
 		}
-		//プリミティブ型はそのまま返す;
-		if(typeof object !== 'object' && typeof object !== 'function') {
-			return object;
-		}
-		//nodeは自作関数cloneNodeに処理を任せる;
+		//Nodeオブジェクトは自作関数cloneNodeに処理を任せる;
 		if(object instanceof Node){
 			return cloneNode(object);
 		}
 		//objectの型とcloneObjの型を同一にする;
 		var cloneObj;
-		switch(typeOf(object)) {
+		var type = typeOf(object);
+		switch(type) {
 			case 'Object':
-				cloneObj = {};
+				//自作クラスはprototype継承される
+				cloneObj = Object.create(Object.getPrototypeOf(object));
 				break;
 			case 'Array':
 				cloneObj = [];
@@ -36,11 +51,13 @@ var clone = (function() {
 					return object;
 				}
 				break;
+			case 'Error':
+				cloneObj = new Object.getPrototypeOf(object).constructor();
 			case 'Date':
-				cloneObj = new Date(object);
+				cloneObj = new Date(object.valueOf());
 				break;
 			case 'RegExp':
-				cloneObj = new RegExp(object);
+				cloneObj = new RegExp(object.valueOf());
 				break;
 			case 'Boolean':
 			case 'String':
@@ -52,16 +69,19 @@ var clone = (function() {
 				return object;
 		}
 		//循環参照対策 objectが既にmemoに保存されていれば内部参照なので、値渡しではなくcloneObjに参照先を切り替えたobjectを返す;
-		for(var i = 0, len = memo.length; i < len; i++) {
-			if(memo[i][0] === object) {
-				return memo[i][1];
+		for(var i = 0, len = memo[type].length; i < len; i++) {
+			if(memo[type][i][0] === object) {
+				return memo[type][i][1];
 			}
 		}
 		//循環参照対策 objectはcloneObjとセットでmemoに追加;
-		memo[memo.length] = [object, cloneObj];
+		memo[type].push([object, cloneObj]);
+
 		//objectのすべてのプロパティを再帰的にcloneする;
-		for(var prop in object) {
-			cloneObj[prop] = clone(object[prop], constructor);
+		var properties = Object.getOwnPropertyNames(object);
+		for(var i = 0, len = properties.length; i < len; i++) {
+			var prop = properties[i];
+			cloneObj[prop] = clone(object[prop], prototypes);
 		}
 		//cloneしたオブジェクトを返す;
 		return cloneObj;
@@ -96,8 +116,8 @@ var clone = (function() {
 		return script;
 	}
 
-	return function(object, constructors) {
-		memo = [];
-		return clone(object, constructors);
+	return function(object, prototypes) {
+		memo = createMemo();
+		return clone(object, prototypes);
 	}
 })();
