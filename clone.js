@@ -13,6 +13,10 @@ var clone = (function() {
 		return true;
 	};
 
+	var isAccessorDescriptor = function(descriptor) {
+		return 'get' in descriptor;
+	};
+
 	var cloneNode = (function() {
 
 		var cloneScript = function(element) {
@@ -144,8 +148,27 @@ var clone = (function() {
 		memo[type]['cloneObjects'].push(cloneObject);
 
 		//objectのすべてのプロパティを再帰的にcloneする;
+		//ディスクリプタも同一にする;
 		var properties = Object.getOwnPropertyNames(object);
 		properties.forEach(function(prop) {
+			var descriptor = Object.getOwnPropertyDescriptor(object, prop);
+			if(isAccessorDescriptor(descriptor)) {
+				//アクセサプロパティ;
+				Object.defineProperty(cloneObject, prop, {
+					get: clone(descriptor.get, prototypes, memo),
+					set: clone(descriptor.set, prototypes, memo),
+					enumerable: descriptor.enumerable,
+					configurable: descriptor.configurable,
+				});
+			}else {
+				//データプロパティ;
+				Object.defineProperty(cloneObject, prop, {
+					value: clone(descriptor.value, prototypes, memo),
+					enumerable: descriptor.enumerable,
+					configurable: descriptor.configurable,
+					writable: descriptor.writable,
+				});
+			}
 			cloneObject[prop] = clone(object[prop], prototypes, memo);
 		});
 
