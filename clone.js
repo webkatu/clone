@@ -1,18 +1,15 @@
-/*
-* オブジェクトをディープコピーするための関数;
-* 第一引数はコピーさせたいオブジェクトを渡す;
-* 第二引数はオブジェクトをどの程度同質にするかをオブジェクトで指定;
-* 例えば{descriptor: false, extensible: false}と指定すると
-* ディスクリプタはコピー元のオブジェクトと同じにならない(全てtrueになる)、
-* そして、オブジェクトの拡張可属性(frozen,sealedなど)は同じにならず、全て拡張可になる;
-* 指定しなければ全てコピー元のオブジェクトと同じになる;
-* 第三引数はコピーさせたくない型(親のprototype)を配列で渡す;
-* 第四引数はコピーさせたくないオブジェクトを配列で渡す;
-*/
-/*
-* 使い方;
-* clone(object, homogeneity, excludedPrototypes, excludedObjects);
-*/
+//オブジェクトをディープコピーするための関数;
+//第一引数はコピーさせたいオブジェクトを渡す;
+//第二引数はオブジェクトをどの程度同質にするかをオブジェクトで指定;
+//例えば{descriptor: false, extensible: false}と指定すると
+//ディスクリプタはコピー元のオブジェクトと同じにならない(全てtrueになる)、
+//そして、オブジェクトの拡張可属性(frozen,sealedなど)は同じにならず、全て拡張可になる;
+//指定しなければ全てコピー元のオブジェクトと同じになる;
+//第三引数はコピーさせたくない型(親のprototype)を配列で渡す;
+//第四引数はコピーさせたくないオブジェクトを配列で渡す;
+
+//使い方;
+//clone(object, homogeneity, excludedPrototypes, excludedObjects);
 var clone = (function() {
 	//引数の型を返す関数;
 	var typeOf = function(operand) {
@@ -188,11 +185,9 @@ var clone = (function() {
 		},
 	};
 
-	/*
-	* memoオブジェクトを作る関数;
-	* 一度コピーされたオブジェクトはmemoオブジェクトに保存され;
-	* 二度コピーすることがないようにする(循環参照対策);
-	*/
+	//memoオブジェクトを作る関数;
+	//一度コピーされたオブジェクトはmemoオブジェクトに保存され;
+	//二度コピーすることがないようにする(循環参照対策);
 	var createMemo = function() {
 		var memo = new Object();
 		var types = ['Object', 'Array', 'Function', 'Error', 'Date', 'RegExp', 'Boolean', 'String', 'Number'];
