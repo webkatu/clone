@@ -102,39 +102,6 @@ var clone = (function() {
 		}
 	};
 
-	var cloneNode = function(node) {
-
-		var cloneScript = function(element) {
-			var script = document.createElement('script');
-			var attrs = element.attributes;
-			for(var i = 0, len = attrs.length; i < len; i++) {
-				var attr = attrs[i];
-				script.setAttribute(attr.name, attr.value);
-			}
-			script.innerHTML = element.innerHTML;
-			return script;
-		};
-
-		var cloneNode = function(node) {
-			//script要素は再評価するためにcloneScriptでcloneする;
-			if(node.tagName === 'SCRIPT') {
-				return cloneScript(node);
-			}
-			//cloneNodeで要素をcloneする;
-			var clone = node.cloneNode();
-			//子要素があれば再帰的に追加;
-			if(node.firstChild) {
-				var childNodes = node.childNodes;
-				for(var i = 0, len = childNodes.length; i < len; i++) {
-					clone.appendChild(cloneNode(childNodes[i]));
-				}
-			}
-			return clone;
-		};
-
-		return cloneNode;
-	}();
-
 	//型を作成するオブジェクト;
 	var sameTypeCreater = {
 		//引数のobjectの型と同一の型を返すメソッド;
@@ -214,11 +181,6 @@ var clone = (function() {
 		//cloneしたくないobjectであれば、参照で返す;
 		if(excludedObjects.indexOf(object) !== -1) {
 			return object;
-		}
-
-		//Nodeオブジェクトは自作関数cloneNodeに処理を任せる;
-		if(object instanceof Node){
-			return cloneNode(object);
 		}
 
 		//objectと同一の型を持つcloneObjectを作成する;
